@@ -1,0 +1,18 @@
+const express = require('express')
+const app = express()
+const morgan = require('morgan')
+const bodyParser = require('body-parser')
+const cookieParser = require('cookie-parser')
+const cors = require('cors')
+const { PORT } = require('./conf')
+const { apiRouter } = require('./routes')
+require('./db')
+require('./cache')
+// middleare
+app.use(morgan('dev'))
+app.use(bodyParser.json())
+app.use(cookieParser())
+app.use(cors())
+// routes
+app.use('/api', apiRouter)
+app.listen(PORT, () => console.log(`Server running on port ${PORT}!`))
