@@ -15,3 +15,6 @@ exports.parser = async function (crypto) {
     }
   })
 }
+exports.dateFormat = function (date) {
+  return new Date(date).toISOString().split('T')[0]
+}

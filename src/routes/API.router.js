@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { cryptoController } = require('../controllers')
 const { cacheMiddleware } = require('../middleware')
+router.get('/crypto', cacheMiddleware.getCrypto)
 router.get(
   '/crypto/:name',
   cacheMiddleware.getCrypto,

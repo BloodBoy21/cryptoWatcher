@@ -61,6 +61,9 @@ async function getTop50() {
 }
 async function getCryptoData(id) {
   id = cryptoIDs[id]
+  if (!id) {
+    return null
+  }
   const splitData = (data, pos = 1) => {
     return '$' + data.split('$')[pos]
   }
