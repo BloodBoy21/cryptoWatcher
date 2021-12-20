@@ -41,3 +41,13 @@ describe('GET top50/', () => {
     expect(response.statusCode).toBe(404)
   })
 })
+
+describe('GET coins/', () => {
+  test('should return a list with available coins', async () => {
+    const response = await request(app).get('/api/coins')
+    const { body } = response
+    const dataLength = body.length
+    expect(response.statusCode).toBe(200)
+    expect(dataLength).toBe(50)
+  })
+})

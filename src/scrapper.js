@@ -113,9 +113,24 @@ async function getCryptoData(id) {
   const data = await getData(conf, `${urlBase}/price/${id}`)
   return data.crypto
 }
+function readCoins() {
+  return new Promise(function (resolve, reject) {
+    fs.readFile(
+      path.join(__dirname, '/cryptoID.json'),
+      'utf8',
+      function (err, data) {
+        if (err) {
+          reject(err)
+        }
+        resolve(JSON.parse(data))
+      }
+    )
+  })
+}
 
 module.exports = {
   getTop50,
   getCryptoData,
-  cryptoIDs
+  cryptoIDs,
+  readCoins
 }

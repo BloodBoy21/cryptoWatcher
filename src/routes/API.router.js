@@ -9,4 +9,5 @@ router.get(
   cryptoController.getCrypto
 )
 router.get('/top50', cacheMiddleware.getTop50, cryptoController.getTop50)
+router.get('/coins', cryptoController.getCoins)
 module.exports = router

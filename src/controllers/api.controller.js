@@ -1,8 +1,7 @@
 const { Crypto, Top50 } = require('../models')
-const { getCryptoData, getTop50 } = require('../scrapper')
+const { getCryptoData, getTop50, readCoins } = require('../scrapper')
 const { cryptoUtil } = require('../utils')
 const cache = require('../cache')
-
 exports.getCrypto = async (req, res) => {
   try {
     const name = req.params.name.toLowerCase() // name of the crypto
@@ -68,6 +67,19 @@ exports.getTop50 = async (req, res) => {
     res.status(200).send(top)
   } catch (error) {
     res.status(500).json({
+      message: error.message
+    })
+  }
+}
+exports.getCoins = async (req, res) => {
+  try {
+    const coins = await readCoins()
+    const coinsParsed = Object.keys(coins).map((coin) => {
+      return coin.toLowerCase()
+    })
+    res.status(200).send(coinsParsed)
+  } catch (error) {
+    res.status(500).send({
       message: error.message
     })
   }
