@@ -1,3 +1,4 @@
 module.exports = {
-  cryptoUtil: require('./crypto.util')
+  cryptoUtil: require('./crypto.util'),
+  responseError: require('./errors.util')
 }

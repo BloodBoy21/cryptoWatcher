@@ -18,5 +18,12 @@ const cryptoSchema = new Schema({
 cryptoSchema.pre('save', function () {
   this.history.push(this.lastest)
 })
+cryptoSchema.statics.getByDate = function (coin, date) {
+  return this.findOne({ name: coin }).then((crypto) => {
+    return crypto.history.filter((history) => {
+      return history.timestamp.toISOString().split('T')[0] === date
+    })
+  })
+}
 
 module.exports = mongoose.model('Crypto', cryptoSchema)

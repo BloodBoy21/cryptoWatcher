@@ -1,14 +1,33 @@
 const { Crypto, Top50 } = require('../models')
 const { getCryptoData, getTop50, readCoins } = require('../scrapper')
-const { cryptoUtil } = require('../utils')
+const { cryptoUtil, responseError } = require('../utils')
 const cache = require('../cache')
+
+async function getByDate(req, res) {
+  const { name } = req.params
+  const { date } = req.query
+  const data = await Crypto.getByDate(name, cryptoUtil.dateFormat(date))
+  if (!data.length) throw responseError.NotFoundError('Date not found')
+  const dataInCache = JSON.parse(
+    await cache.hGet('crypto-Dates', `${cryptoUtil.dateFormat(date)}`)
+  )
+  if (dataInCache) dataInCache[name] = data
+  cache.hSet(
+    'crypto-Dates',
+    `${cryptoUtil.dateFormat(date)}`,
+    JSON.stringify(dataInCache ?? { [name]: data })
+  )
+  res.status(200).send(data)
+}
 exports.getCrypto = async (req, res) => {
   try {
-    const name = req.params.name.toLowerCase() // name of the crypto
-    const cryptoData = await getCryptoData(name) // get crypto data from scrapper
-    if (!cryptoData) {
-      return res.status(404).send({ message: 'Crypto not found' })
+    // if date is provided
+    if (req.query.date) {
+      return getByDate(req, res)
     }
+    const { name } = req.params // name of the crypto
+    const cryptoData = await getCryptoData(name) // get crypto data from scrapper
+    if (!cryptoData) throw responseError.NotFoundError('Crypto not found')
     let crypto = await new Crypto({ name, lastest: cryptoData })
     const saveInCache = async (crypto) => {
       const name = crypto.name
@@ -22,8 +41,7 @@ exports.getCrypto = async (req, res) => {
     } else {
       // if crypto is found in cache
       const cryptoInCache = JSON.parse(await cache.get(name))
-      const id = cryptoInCache._id
-      const cryptoSaved = await Crypto.findById(id)
+      const cryptoSaved = await Crypto.findById(cryptoInCache._id)
       cryptoSaved.lastest = crypto.lastest
       await cryptoSaved.save()
       await saveInCache(cryptoSaved)
@@ -31,9 +49,7 @@ exports.getCrypto = async (req, res) => {
     }
     res.status(200).send(await cryptoUtil.parser(crypto))
   } catch (error) {
-    res.status(500).send({
-      message: error.message
-    })
+    responseError.SendError(error, res)
   }
 }
 
@@ -48,10 +64,7 @@ exports.getTop50 = async (req, res) => {
           $lt: new Date(date).setDate(new Date(date).getDate() + 1)
         }
       })
-      if (!topSelect) {
-        // if date is not found in cache
-        return res.status(404).send({ message: 'Top50 not found' })
-      }
+      if (!topSelect) throw responseError.NotFoundError('Date not found')
       cache.hSet(
         'top50-Dates',
         `${cryptoUtil.dateFormat(date)}`,
@@ -66,9 +79,7 @@ exports.getTop50 = async (req, res) => {
     cache.set('top50', JSON.stringify(top50)) // save top 50 cryptos in cache
     res.status(200).send(top)
   } catch (error) {
-    res.status(500).json({
-      message: error.message
-    })
+    responseError.SendError(error, res)
   }
 }
 exports.getCoins = async (req, res) => {
@@ -79,8 +90,6 @@ exports.getCoins = async (req, res) => {
     })
     res.status(200).send(coinsParsed)
   } catch (error) {
-    res.status(500).send({
-      message: error.message
-    })
+    responseError.SendError(error, res)
   }
 }
