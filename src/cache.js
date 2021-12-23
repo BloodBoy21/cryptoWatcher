@@ -3,7 +3,7 @@ let client
 if (process.env.NODE_ENV !== 'production') {
   client = createClient()
 } else {
-  client = createClient({ url: process.REDIS_TLS_URL })
+  client = createClient({ url: process.REDIS_URL })
 }
 
 client.on('error', (err) => console.log('Redis Client Error', err))
