@@ -5,6 +5,7 @@ const { cryptoUtil, responseError } = require('../utils')
 const getTimeout = (timestamp) => {
   return Date.now() - new Date(timestamp)
 }
+// TODO: add 'to' query to get top50 by date
 exports.getCrypto = async (req, res, next) => {
   try {
     let cryptoGetByData = false
@@ -14,9 +15,9 @@ exports.getCrypto = async (req, res, next) => {
     }
     req.params.name = req.params.name.toLowerCase()
     if (req.query.force === 'true') return next() // if force is true then go to next middleware
-    if (req.query.date) {
+    if (req.query.from) {
       // if date is provided
-      const date = cryptoUtil.dateFormat(req.query.date)
+      const date = cryptoUtil.dateFormat(req.query.from)
       cryptoSelect = JSON.parse(await cache.hGet('crypto-Dates', date))
       cryptoSelect = cryptoSelect[req.params.name] || null
       if (!cryptoSelect) return next()
@@ -43,9 +44,9 @@ exports.getTop50 = async (req, res, next) => {
     let topSelect = null
     let topGetByDate = false
     if (req.query.force === 'true') return next() // if force is true then go to next middleware
-    if (req.query.date) {
+    if (req.query.from) {
       // if date is provided
-      const date = cryptoUtil.dateFormat(req.query.date)
+      const date = cryptoUtil.dateFormat(req.query.from)
       topSelect = await cache.hGet('top50-Dates', date)
       if (!topSelect) return next()
       topSelect = JSON.parse(topSelect)
