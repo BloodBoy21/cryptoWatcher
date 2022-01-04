@@ -1,30 +1,45 @@
 /* eslint-disable  no-unused-vars, no-undef */
-const top50 = document.getElementById('top50')
-const getTopData = () => {
-  fetch('/api/top50')
-    .then((res) => res.json())
-    .then((data) => {
-      let cryptoList = ''
-      for (let i = 0; i < data.length; i++) {
-        cryptoList += `
-            <tr >
-                <td class=" border border-gray-300">${i + 1}</td>
-                <td class="px-4 py-2 border border-gray-300">${
-                  data[i].name
-                }</td>
-                <td class="px-4 py-2 border border-gray-300">${
-                  data[i].mainPrice
-                }</td>
-                <td class="px-4 py-2 border border-gray-300">${
-                  data[i].marketCap
-                }</td>
-                <td class="px-4 py-2 border border-gray-300">${
-                  data[i].volume
-                }</td>
-            </tr>
-            `
-      }
-      top50.innerHTML += cryptoList
-    })
+const urlBase = new URL(window.location.origin)
+const urlDOM = document.getElementById('host')
+urlDOM.textContent = urlBase.host
+const coins = ['bitcoin', 'ethereum', 'tether', 'dogecoin']
+
+/**
+ *
+ * @param {string} coin
+ * @returns {Promise}
+ */
+function getCoinData(coin) {
+  return new Promise((resolve, reject) => {
+    fetch(`${urlBase}api/crypto/${coin}`)
+      .then((response) => {
+        response.json().then((data) => {
+          resolve(data)
+        })
+      })
+      .catch((error) => {
+        reject(error)
+      })
+  })
 }
-// window.onload = getTopData()
+/**
+ *
+ * @param {object} data
+ */
+function setData(data) {
+  const responseDOM = document.getElementById('response')
+  let dataParsed = JSON.stringify(data, null, 4)
+  dataParsed = dataParsed.replace(/\n/g, '<br>')
+  dataParsed = dataParsed.replace(/\s/g, '&nbsp;')
+  dataParsed = dataParsed.replace(/"/g, '')
+  const pElement = document.createElement('p')
+  pElement.innerHTML = dataParsed
+  responseDOM.appendChild(pElement)
+}
+
+window.onload = async () => {
+  const coin = coins[Math.floor(Math.random() * coins.length)]
+  document.getElementById('coin').textContent = coin
+  const data = await getCoinData(coin)
+  setData(data)
+}

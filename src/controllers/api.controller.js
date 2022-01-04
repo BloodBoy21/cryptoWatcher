@@ -4,25 +4,31 @@ const { cryptoUtil, responseError } = require('../utils')
 const cache = require('../cache')
 
 async function getByDate(req, res) {
-  const { name } = req.params
-  const { date } = req.query
-  const data = await Crypto.getByDate(name, cryptoUtil.dateFormat(date))
-  if (!data.length) throw responseError.NotFoundError('Date not found')
-  const dataInCache = JSON.parse(
-    await cache.hGet('crypto-Dates', `${cryptoUtil.dateFormat(date)}`)
-  )
-  if (dataInCache) dataInCache[name] = data
-  cache.hSet(
-    'crypto-Dates',
-    `${cryptoUtil.dateFormat(date)}`,
-    JSON.stringify(dataInCache ?? { [name]: data })
-  )
-  res.status(200).send(data)
+  try {
+    const { name } = req.params
+    const { from } = req.query
+    const data = await Crypto.getByDate(name, cryptoUtil.dateFormat(from))
+    if (!data.length) {
+      throw responseError.NotFoundError('Date not found or missing')
+    }
+    const dataInCache = JSON.parse(
+      await cache.hGet('crypto-Dates', `${cryptoUtil.dateFormat(from)}`)
+    )
+    if (dataInCache) dataInCache[name] = data
+    cache.hSet(
+      'crypto-Dates',
+      `${cryptoUtil.dateFormat(from)}`,
+      JSON.stringify(dataInCache ?? { [name]: data })
+    )
+    res.status(200).send(data)
+  } catch (error) {
+    responseError.SendError(error, res)
+  }
 }
 exports.getCrypto = async (req, res) => {
   try {
     // if date is provided
-    if (req.query.date) {
+    if (req.query.from) {
       return getByDate(req, res)
     }
     const { name } = req.params // name of the crypto
@@ -55,19 +61,19 @@ exports.getCrypto = async (req, res) => {
 
 exports.getTop50 = async (req, res) => {
   try {
-    const { date } = req.query
-    if (date) {
+    const { from } = req.query
+    if (from) {
       // if date is provided
       const topSelect = await Top50.findOne({
         timestamp: {
-          $gte: new Date(date),
-          $lt: new Date(date).setDate(new Date(date).getDate() + 1)
+          $gte: new Date(from),
+          $lt: new Date(from).setDate(new Date(from).getDate() + 1)
         }
       })
       if (!topSelect) throw responseError.NotFoundError('Date not found')
       cache.hSet(
         'top50-Dates',
-        `${cryptoUtil.dateFormat(date)}`,
+        `${cryptoUtil.dateFormat(from)}`,
         JSON.stringify(topSelect.top)
       )
       return res.status(200).send(topSelect)

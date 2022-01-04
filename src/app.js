@@ -5,6 +5,7 @@ const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const path = require('path')
+const cron = require('./crono')
 const { apiRouter, rootRouter } = require('./routes')
 require('./db')
 const cache = require('./cache')
@@ -17,6 +18,7 @@ if (process.env.NODE_ENV !== 'production') {
   const connectLivereload = require('connect-livereload')
   app.use(connectLivereload())
 }
+cron.start()
 // middleare
 app.use(morgan('dev'))
 app.use(bodyParser.json())

@@ -20,6 +20,16 @@ describe('GET crypto/:name', () => {
     const response = await request(app).get('/api/crypto/')
     expect(response.statusCode).toBe(400)
   })
+  test('Should return data from date query', async () => {
+    const response = await request(app).get('/api/crypto/bitcoin?date=12-18-21')
+    const { body } = response
+    expect(response.statusCode).toBe(200)
+    expect(body.length).toBeGreaterThan(0)
+  })
+  test('Should return 404 if date is invalid or missing', async () => {
+    const response = await request(app).get('/api/crypto/bitcoin?date=12-18-19')
+    expect(response.statusCode).toBe(404)
+  })
 })
 
 describe('GET top50/', () => {
@@ -43,7 +53,7 @@ describe('GET top50/', () => {
 })
 
 describe('GET coins/', () => {
-  test('should return a list with available coins', async () => {
+  test('should return a list with the available coins', async () => {
     const response = await request(app).get('/api/coins')
     const { body } = response
     const dataLength = body.length
